@@ -1,42 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agent Time Tracker</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 2rem; }
-    input, button, select { margin: 0.5rem; padding: 0.5rem; font-size: 1rem; }
-  </style>
-</head>
-<body>
-  <h1>Agent Time Tracker</h1>
-  <input type="text" id="username" placeholder="Enter your name" required />
-  <input type="text" id="note" placeholder="Optional note" />
-  <br/>
-  <button onclick="submitTime('Morning')">Morning</button>
-  <button onclick="submitTime('Lunch')">Lunch</button>
-  <button onclick="submitTime('Back')">Back</button>
-  <button onclick="submitTime('881')">881</button>
+  <script defer>
+    async function submitPunch(type) {
+      const name = document.getElementById('userName').value.trim();
+      const note = document.getElementById('noteInput').value.trim();
 
-  <script>
-    const submitTime = (action) => {
-      const name = document.getElementById('username').value.trim();
-      const note = document.getElementById('note').value.trim();
-      if (!name) return alert('Please enter your name.');
+      if (!name) {
+        alert('Please enter your name.');
+        return;
+      }
 
-      fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ name, action, note })
-      });
+      const now = new Date();
+      const data = {
+        date: now.toISOString().split('T')[0],
+        time: now.toTimeString().split(' ')[0],
+        user: name,
+        type: type,
+        note: note
+      };
 
-      alert(`${action} punch recorded!`);
-      document.getElementById('note').value = "";
-    };
+      try {
+        await fetch('https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec', {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        alert(`${type} punch submitted.`);
+        document.getElementById('noteInput').value = '';
+      } catch (error) {
+        alert('Error submitting punch.');
+        console.error(error);
+      }
+    }
   </script>
+</head>
+<body style="font-family: sans-serif; padding: 2rem; max-width: 500px; margin: auto;">
+  <h2>Agent Clock In/Out</h2>
+  <label>Name:<br><input type="text" id="userName" placeholder="Enter your name" style="width:100%; margin-bottom: 1rem;"></label>
+
+  <label>Optional Note:<br><textarea id="noteInput" rows="2" style="width:100%; margin-bottom: 1rem;"></textarea></label>
+
+  <button onclick="submitPunch('Morning')" style="width: 100%; margin-bottom: 0.5rem;">Morning</button>
+  <button onclick="submitPunch('Break')" style="width: 100%; margin-bottom: 0.5rem;">Break</button>
+  <button onclick="submitPunch('Back')" style="width: 100%; margin-bottom: 0.5rem;">Back</button>
+  <button onclick="submitPunch('881')" style="width: 100%; margin-bottom: 0.5rem;">881</button>
 </body>
 </html>
